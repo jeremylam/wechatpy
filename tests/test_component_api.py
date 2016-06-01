@@ -6,7 +6,7 @@ import unittest
 from httmock import urlmatch, HTTMock, response
 
 from wechatpy.component import WeChatComponent
-from wechatpy._compat import json
+from wechatpy.utils import json
 
 
 _TESTS_PATH = os.path.abspath(os.path.dirname(__file__))
@@ -35,9 +35,12 @@ def wechat_api_mock(url, request):
 class WeChatComponentTestCase(unittest.TestCase):
     app_id = '123456'
     app_secret = '123456'
+    token = 'sdfusfsssdc'
+    encoding_aes_key = 'yguy3495y79o34vod7843933902h9gb2834hgpB90rg'
 
     def setUp(self):
-        self.client = WeChatComponent(self.app_id, self.app_secret)
+        self.client = WeChatComponent(
+            self.app_id, self.app_secret, self.token, self.encoding_aes_key)
 
     def test_fetch_access_token(self):
         with HTTMock(wechat_api_mock):

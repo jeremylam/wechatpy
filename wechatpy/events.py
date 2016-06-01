@@ -15,7 +15,8 @@ from wechatpy.fields import (
     FloatField,
     IntegerField,
     BaseField,
-    Base64DecodeField
+    Base64DecodeField,
+    DateTimeField
 )
 from wechatpy.messages import BaseMessage
 
@@ -26,6 +27,7 @@ EVENT_TYPES = {}
 def register_event(event_type):
     """
     Register the event class so that they can be accessed from EVENT_TYPES
+
     :param event_type: Event type
     """
     def register(cls):
@@ -44,6 +46,7 @@ class BaseEvent(BaseMessage):
 class SubscribeEvent(BaseEvent):
     """
     用户关注事件
+
     详情请参阅
     http://mp.weixin.qq.com/wiki/2/5baf56ce4947d35003b86a9805634b1e.html
     """
@@ -54,6 +57,7 @@ class SubscribeEvent(BaseEvent):
 class UnsubscribeEvent(BaseEvent):
     """
     用户取消关注事件
+
     详情请参阅
     http://mp.weixin.qq.com/wiki/2/5baf56ce4947d35003b86a9805634b1e.html
     """
@@ -64,6 +68,7 @@ class UnsubscribeEvent(BaseEvent):
 class SubscribeScanEvent(BaseEvent):
     """
     用户扫描二维码关注事件
+
     详情请参阅
     http://mp.weixin.qq.com/wiki/2/5baf56ce4947d35003b86a9805634b1e.html
     """
@@ -76,6 +81,7 @@ class SubscribeScanEvent(BaseEvent):
 class ScanEvent(BaseEvent):
     """
     用户扫描二维码事件
+
     详情请参阅
     http://mp.weixin.qq.com/wiki/2/5baf56ce4947d35003b86a9805634b1e.html
     """
@@ -88,6 +94,7 @@ class ScanEvent(BaseEvent):
 class LocationEvent(BaseEvent):
     """
     上报地理位置事件
+
     详情请参阅
     http://mp.weixin.qq.com/wiki/2/5baf56ce4947d35003b86a9805634b1e.html
     """
@@ -101,6 +108,7 @@ class LocationEvent(BaseEvent):
 class ClickEvent(BaseEvent):
     """
     点击菜单拉取消息事件
+
     详情请参阅
     http://mp.weixin.qq.com/wiki/2/5baf56ce4947d35003b86a9805634b1e.html
     """
@@ -112,6 +120,7 @@ class ClickEvent(BaseEvent):
 class ViewEvent(BaseEvent):
     """
     点击菜单跳转链接事件
+
     详情请参阅
     http://mp.weixin.qq.com/wiki/2/5baf56ce4947d35003b86a9805634b1e.html
     """
@@ -123,9 +132,11 @@ class ViewEvent(BaseEvent):
 class MassSendJobFinishEvent(BaseEvent):
     """
     群发消息任务完成事件
+
     详情请参阅
     http://mp.weixin.qq.com/wiki/15/5380a4e6f02f2ffdc7981a8ed7a40753.html
     """
+    id = IntegerField('MsgID', 0)
     event = 'masssendjobfinish'
     status = StringField('Status')
     total_count = IntegerField('TotalCount', 0)
@@ -138,6 +149,7 @@ class MassSendJobFinishEvent(BaseEvent):
 class TemplateSendJobFinishEvent(BaseEvent):
     """
     模板消息任务完成事件
+
     详情请参阅
     http://mp.weixin.qq.com/wiki/17/304c1885ea66dbedf7dc170d84999a9d.html
     """
@@ -163,6 +175,7 @@ class BaseScanCodeEvent(BaseEvent):
 class ScanCodePushEvent(BaseScanCodeEvent):
     """
     扫码推事件
+
     详情请参阅
     http://mp.weixin.qq.com/wiki/9/981d772286d10d153a3dc4286c1ee5b5.html
     """
@@ -173,6 +186,7 @@ class ScanCodePushEvent(BaseScanCodeEvent):
 class ScanCodeWaitMsgEvent(BaseScanCodeEvent):
     """
     扫码推事件且弹出“消息接收中”提示框的事件
+
     详情请参阅
     http://mp.weixin.qq.com/wiki/9/981d772286d10d153a3dc4286c1ee5b5.html
     """
@@ -201,6 +215,7 @@ class BasePictureEvent(BaseEvent):
 class PicSysPhotoEvent(BasePictureEvent):
     """
     弹出系统拍照发图的事件
+
     详情请参阅
     http://mp.weixin.qq.com/wiki/9/981d772286d10d153a3dc4286c1ee5b5.html
     """
@@ -211,6 +226,7 @@ class PicSysPhotoEvent(BasePictureEvent):
 class PicPhotoOrAlbumEvent(BasePictureEvent):
     """
     弹出拍照或者相册发图的事件
+
     详情请参阅
     http://mp.weixin.qq.com/wiki/9/981d772286d10d153a3dc4286c1ee5b5.html
     """
@@ -221,6 +237,7 @@ class PicPhotoOrAlbumEvent(BasePictureEvent):
 class PicWeChatEvent(BasePictureEvent):
     """
     弹出微信相册发图器的事件
+
     详情请参阅
     http://mp.weixin.qq.com/wiki/9/981d772286d10d153a3dc4286c1ee5b5.html
     """
@@ -231,6 +248,7 @@ class PicWeChatEvent(BasePictureEvent):
 class LocationSelectEvent(BaseEvent):
     """
     弹出地理位置选择器的事件
+
     详情请参阅
     http://mp.weixin.qq.com/wiki/9/981d772286d10d153a3dc4286c1ee5b5.html
     """
@@ -417,3 +435,164 @@ class WiFiConnectedEvent(BaseEvent):
     vendor_id = StringField('VendorId')
     shop_id = StringField('PlaceId')
     bssid = StringField('DeviceNo')
+
+
+# ============================================================================
+# 微信认证事件推送
+# ============================================================================
+@register_event('qualification_verify_success')
+class QualificationVerifySuccessEvent(BaseEvent):
+    """
+    资质认证成功事件
+
+    详情请参阅
+    http://mp.weixin.qq.com/wiki/1/7f81dec16b801b34629091094c099439.html
+    """
+    event = 'qualification_verify_success'
+    expired_time = DateTimeField('ExpiredTime')
+
+
+@register_event('qualification_verify_fail')
+class QualificationVerifyFailEvent(BaseEvent):
+    """
+    资质认证失败事件
+
+    详情请参阅
+    http://mp.weixin.qq.com/wiki/1/7f81dec16b801b34629091094c099439.html
+    """
+    event = 'qualification_verify_fail'
+    fail_time = DateTimeField('FailTime')
+    fail_reason = StringField('FailReason')
+
+
+@register_event('naming_verify_success')
+class NamingVerifySuccessEvent(BaseEvent):
+    """
+    名称认证成功事件
+
+    详情请参阅
+    http://mp.weixin.qq.com/wiki/1/7f81dec16b801b34629091094c099439.html
+    """
+    event = 'naming_verify_success'
+    expired_time = DateTimeField('ExpiredTime')
+
+
+@register_event('naming_verify_fail')
+class NamingVerifyFailEvent(BaseEvent):
+    """
+    名称认证失败事件
+
+    客户端不打勾，但仍有接口权限。详情请参阅
+    http://mp.weixin.qq.com/wiki/1/7f81dec16b801b34629091094c099439.html
+    """
+    event = 'naming_verify_fail'
+    fail_time = DateTimeField('FailTime')
+    fail_reason = StringField('FailReason')
+
+
+@register_event('annual_renew')
+class AnnualRenewEvent(BaseEvent):
+    """
+    年审通知事件
+
+    详情请参阅
+    http://mp.weixin.qq.com/wiki/1/7f81dec16b801b34629091094c099439.html
+    """
+    event = 'annual_renew'
+    expired_time = DateTimeField('ExpiredTime')
+
+
+@register_event('verify_expired')
+class VerifyExpiredEvent(BaseEvent):
+    """
+    认证过期失效通知
+
+    详情请参阅
+    http://mp.weixin.qq.com/wiki/1/7f81dec16b801b34629091094c099439.html
+    """
+    event = 'verify_expired'
+    expired_time = DateTimeField('ExpiredTime')
+
+
+@register_event('user_scan_product')
+class UserScanProductEvent(BaseEvent):
+    """
+    打开商品主页事件
+
+    详情请参考
+    http://mp.weixin.qq.com/wiki/15/f4109a5e44b4bfbc7eb1337eb739f3e3.html
+    """
+    event = 'user_scan_product'
+    standard = StringField('KeyStandard')
+    key = StringField('KeyStr')
+    country = StringField('Country')
+    province = StringField('Province')
+    city = StringField('City')
+    sex = IntegerField('Sex')
+    scene = IntegerField('Scene')
+
+
+@register_event('user_scan_product_enter_session')
+class UserScanProductEnterSessionEvent(BaseEvent):
+    """
+    进入公众号事件
+
+    详情请参考
+    http://mp.weixin.qq.com/wiki/15/f4109a5e44b4bfbc7eb1337eb739f3e3.html
+    """
+    event = 'user_scan_product_enter_session'
+    standard = StringField('KeyStandard')
+    key = StringField('KeyStr')
+
+
+@register_event('user_scan_product_async')
+class UserScanProductAsyncEvent(BaseEvent):
+    """
+    地理位置信息异步推送事件
+
+    详情请参考
+    http://mp.weixin.qq.com/wiki/15/f4109a5e44b4bfbc7eb1337eb739f3e3.html
+    """
+    event = 'user_scan_product_async'
+    standard = StringField('KeyStandard')
+    key = StringField('KeyStr')
+    region_code = StringField('RegionCode')
+
+
+@register_event('user_scan_product_verify_action')
+class UserScanProductVerifyActionEvent(BaseEvent):
+    """
+    商品审核结果事件
+
+    详情请参考
+    http://mp.weixin.qq.com/wiki/15/f4109a5e44b4bfbc7eb1337eb739f3e3.html
+    """
+    event = 'user_scan_product_verify_action'
+    standard = StringField('KeyStandard')
+    key = StringField('KeyStr')
+    result = StringField('Result')
+    reason = StringField('ReasonMsg')
+
+
+@register_event('subscribe_scan_product')
+class SubscribeScanProductEvent(BaseEvent):
+    """
+    用户在商品主页中关注公众号事件
+
+    详情请参考
+    http://mp.weixin.qq.com/wiki/15/f4109a5e44b4bfbc7eb1337eb739f3e3.html
+    """
+    event = 'subscribe_scan_product'
+    event_key = StringField('EventKey')
+
+    @property
+    def scene(self):
+        return self.event_key.split('|', 1)[0]
+
+    @property
+    def standard(self):
+        return self.event_key.split('|')[1]
+
+    @property
+    def key(self):
+        return self.event_key.split('|')[2]

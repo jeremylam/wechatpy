@@ -6,6 +6,8 @@ from wechatpy.client.api.base import BaseWeChatAPI
 
 class WeChatCard(BaseWeChatAPI):
 
+    API_BASE_URL = 'https://api.weixin.qq.com/'
+
     def create(self, card_data):
         """
         创建卡券
@@ -15,9 +17,10 @@ class WeChatCard(BaseWeChatAPI):
         """
         result = self._post(
             'card/create',
-            data=card_data
+            data=card_data,
+            result_processor=lambda x: x['card_id']
         )
-        return result['card_id']
+        return result
 
     def batch_add_locations(self, location_data):
         """
@@ -28,9 +31,10 @@ class WeChatCard(BaseWeChatAPI):
         """
         result = self._post(
             'card/location/batchadd',
-            data=location_data
+            data=location_data,
+            result_processor=lambda x: x['location_id_list']
         )
-        return result['location_id_list']
+        return result
 
     def batch_get_locations(self, offset=0, count=0):
         """
@@ -49,8 +53,11 @@ class WeChatCard(BaseWeChatAPI):
         获得卡券的最新颜色列表，用于创建卡券
         :return: 颜色列表
         """
-        result = self._get('card/getcolors')
-        return result['colors']
+        result = self._get(
+            'card/getcolors',
+            result_processor=lambda x: x['colors']
+        )
+        return result
 
     def create_qrcode(self, qrcode_data):
         """
@@ -61,9 +68,33 @@ class WeChatCard(BaseWeChatAPI):
         """
         result = self._post(
             'card/qrcode/create',
-            data=qrcode_data
+            data=qrcode_data,
+            result_processor=lambda x: x['ticket']
         )
-        return result['ticket']
+        return result
+
+    def create_landingpage(self, buffer_data):
+        """
+        创建货架
+        """
+        result = self._post(
+            'card/landingpage/create',
+            data=buffer_data
+        )
+        return result
+
+    def get_html(self, card_id):
+        """
+        图文消息群发卡券
+        """
+        result = self._post(
+            'card/mpnews/gethtml',
+            data={
+                'card_id': card_id
+            },
+            result_processor=lambda x: x['content']
+        )
+        return result
 
     def consume_code(self, code, card_id=None):
         """
@@ -87,9 +118,10 @@ class WeChatCard(BaseWeChatAPI):
             'card/code/decrypt',
             data={
                 'encrypt_code': encrypt_code
-            }
+            },
+            result_processor=lambda x: x['code']
         )
-        return result['code']
+        return result
 
     def delete(self, card_id):
         """
@@ -102,27 +134,49 @@ class WeChatCard(BaseWeChatAPI):
             }
         )
 
-    def get_code(self, code):
+    def get_code(self, code, card_id=None, check_consume=True):
         """
         查询 code 信息
         """
+        card_data = {
+            'code': code
+        }
+        if card_id:
+            card_data['card_id'] = card_id
+        if not check_consume:
+            card_data['check_consume'] = check_consume
         return self._post(
             'card/code/get',
-            data={
-                'code': code
-            }
+            data=card_data
         )
 
-    def batch_get(self, offset=0, count=50):
+    def get_card_list(self, openid, card_id=None):
+        """
+        用于获取用户卡包里的，属于该appid下的卡券。
+        """
+        card_data = {
+            'openid': openid
+        }
+        if card_id:
+            card_data['card_id'] = card_id
+        return self._post(
+            'card/user/getcardlist',
+            data=card_data
+        )
+
+    def batch_get(self, offset=0, count=50, status_list=None):
         """
         批量查询卡券信息
         """
+        card_data = {
+            'offset': offset,
+            'count': count
+        }
+        if status_list:
+            card_data['status_list'] = status_list
         return self._post(
             'card/batchget',
-            data={
-                'offset': offset,
-                'count': count
-            }
+            data=card_data
         )
 
     def get(self, card_id):
@@ -133,9 +187,10 @@ class WeChatCard(BaseWeChatAPI):
             'card/get',
             data={
                 'card_id': card_id
-            }
+            },
+            result_processor=lambda x: x['card']
         )
-        return result['card']
+        return result
 
     def update_code(self, card_id, old_code, new_code):
         """
@@ -171,6 +226,18 @@ class WeChatCard(BaseWeChatAPI):
         return self._post(
             'card/update',
             data=card_data
+        )
+
+    def set_paycell(self, card_id, is_open):
+        """
+        更新卡券信息
+        """
+        return self._post(
+            'card/paycell/set',
+            data={
+                'card_id': card_id,
+                'is_open': is_open
+            }
         )
 
     def set_test_whitelist(self, openids=None, usernames=None):
@@ -305,4 +372,60 @@ class WeChatCard(BaseWeChatAPI):
             code=encrypt_code,
             card_id=card_id,
             signature=signature
+        )
+
+    def deposit_code(self, card_id, codes):
+        """
+        导入code
+        """
+        card_data = {
+            'card_id': card_id,
+            'code': codes
+        }
+        return self._post(
+            'card/code/deposit',
+            data=card_data
+        )
+
+    def get_deposit_count(self, card_id):
+        """
+        查询导入code数目
+        """
+        card_data = {
+            'card_id': card_id,
+        }
+        return self._post(
+            'card/code/getdepositcount',
+            data=card_data
+        )
+
+    def check_code(self, card_id, codes):
+        """
+        核查code
+        """
+        card_data = {
+            'card_id': card_id,
+            'code': codes
+        }
+        return self._post(
+            'card/code/checkcode',
+            data=card_data
+        )
+
+    def modify_stock(self, card_id, n):
+        """
+        修改库存
+        """
+        if n == 0:
+            return
+        card_data = {
+            'card_id': card_id,
+        }
+        if n > 0:
+            card_data['increase_stock_value'] = n
+        elif n < 0:
+            card_data['reduce_stock_value'] = -n
+        return self._post(
+            'card/modifystock',
+            data=card_data
         )
